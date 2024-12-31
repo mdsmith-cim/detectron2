@@ -138,7 +138,7 @@ class COCOPanopticEvaluator(DatasetEvaluator):
             with PathManager.open(predictions_json, "w") as f:
                 f.write(json.dumps(json_data))
 
-            from panopticapi.evaluation import pq_compute
+            from .panopticapi_evaluation import pq_compute
 
             with contextlib.redirect_stdout(io.StringIO()):
                 pq_res = pq_compute(
