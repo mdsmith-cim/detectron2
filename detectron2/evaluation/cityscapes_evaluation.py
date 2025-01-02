@@ -214,7 +214,7 @@ class CityscapesSemSegEvaluator(CityscapesEvaluator):
         predictionImgList = []
         for gt in groundTruthImgList:
             predictionImgList.append(cityscapes_eval.getPrediction(cityscapes_eval.args, gt))
-        results = evaluateImgListsWorkaround(
+        results = cityscapes_eval.evaluateImgLists(
             predictionImgList, groundTruthImgList, cityscapes_eval.args
         )
         ret = OrderedDict()
