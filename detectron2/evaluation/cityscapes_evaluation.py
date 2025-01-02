@@ -14,6 +14,37 @@ from detectron2.utils.file_io import PathManager
 
 from .evaluator import DatasetEvaluator
 
+# Replaces evaluateImgLists in cityscapesscripts.evaluation.evalInstanceLevelSemanticLabeling
+# For some reason, it tries to write a file matches.json to the current working directory
+# On some SLURM systems this directory is not writable from compute nodes
+def evaluateImgListsWorkaround(predictionList, groundTruthList, args):
+    from cityscapesscripts.evaluation.evalInstanceLevelSemanticLabeling import setInstanceLabels, getGtInstances, matchGtWithPreds, evaluateMatches, computeAverages, prepareJSONDataForResults, ensurePath, writeDict2JSON, printResults
+    # determine labels of interest
+    setInstanceLabels(args)
+    # get dictionary of all ground truth instances
+    gtInstances = getGtInstances(groundTruthList,args)
+    # match predictions and ground truth
+    matches = matchGtWithPreds(predictionList,groundTruthList,gtInstances,args)
+    # writeDict2JSON(matches,"matches.json")
+    # evaluate matches
+    apScores = evaluateMatches(matches, args)
+    # averages
+    avgDict = computeAverages(apScores,args)
+    # result dict
+    resDict = prepareJSONDataForResults(avgDict, apScores, args)
+    if args.JSONOutput:
+        # create output folder if necessary
+        path = os.path.dirname(args.exportFile)
+        ensurePath(path)
+        # Write APs to JSON
+        writeDict2JSON(resDict, args.exportFile)
+
+    if not args.quiet:
+         # Print results
+        printResults(avgDict, args)
+
+    return resDict
+
 
 class CityscapesEvaluator(DatasetEvaluator):
     """
@@ -119,7 +150,7 @@ class CityscapesInstanceEvaluator(CityscapesEvaluator):
         predictionImgList = []
         for gt in groundTruthImgList:
             predictionImgList.append(cityscapes_eval.getPrediction(gt, cityscapes_eval.args))
-        results = cityscapes_eval.evaluateImgLists(
+        results = evaluateImgListsWorkaround(
             predictionImgList, groundTruthImgList, cityscapes_eval.args
         )["averages"]
 
@@ -183,7 +214,7 @@ class CityscapesSemSegEvaluator(CityscapesEvaluator):
         predictionImgList = []
         for gt in groundTruthImgList:
             predictionImgList.append(cityscapes_eval.getPrediction(cityscapes_eval.args, gt))
-        results = cityscapes_eval.evaluateImgLists(
+        results = evaluateImgListsWorkaround(
             predictionImgList, groundTruthImgList, cityscapes_eval.args
         )
         ret = OrderedDict()
