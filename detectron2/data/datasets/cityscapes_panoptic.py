@@ -159,8 +159,7 @@ def register_all_cityscapes_panoptic(root):
     for k in CITYSCAPES_CATEGORIES:
         if k["isthing"] == 1:
             thing_dataset_id_to_contiguous_id[k["id"]] = k["trainId"]
-        else:
-            stuff_dataset_id_to_contiguous_id[k["id"]] = k["trainId"]
+        stuff_dataset_id_to_contiguous_id[k["id"]] = k["trainId"]
 
     meta["thing_dataset_id_to_contiguous_id"] = thing_dataset_id_to_contiguous_id
     meta["stuff_dataset_id_to_contiguous_id"] = stuff_dataset_id_to_contiguous_id
